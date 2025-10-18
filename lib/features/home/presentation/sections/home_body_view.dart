@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:petfinder_app_demo/core/widgets/custom_text_widgets.dart';
 import 'package:petfinder_app_demo/features/home/presentation/cubit/pet/pet_cubit.dart';
 import 'package:petfinder_app_demo/features/home/presentation/cubit/pet/pet_state.dart';
 import 'package:petfinder_app_demo/features/home/presentation/view/details_view.dart';
 import 'package:petfinder_app_demo/features/home/presentation/widgets/pet_item.dart';
+import '../view/category_view.dart';
 import '../widgets/pet_shimmer.dart';
 import '../view/search_bar_view.dart';
 
@@ -45,26 +47,34 @@ class _PetsListPageState extends State<PetsListBodyView> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-      SearchBarWidget(),
+        const SearchBarWidget(),
+        
+        const SizedBox(height: 8),
+         
+        CategoryFilterCustom(onCategorySelected: (String p1) {  },),
 
         Expanded(
           child: BlocBuilder<PetCubit, PetState>(
             builder: (context, state) {
               if (state is PetLoading) {
                 return ListView.builder(
-                  itemCount: 5, // Show 5 shimmer items
+                  itemCount: 5,
                   itemBuilder: (context, index) => const PetItemShimmer(),
                 );
               }
-          
+
               if (state is PetsError) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red[300],
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         state.message.message,
@@ -89,15 +99,16 @@ class _PetsListPageState extends State<PetsListBodyView> {
                   ),
                 );
               }
-          
+
               if (state is PetsLoaded || state is PetsLoadingMore) {
                 final pets = state is PetsLoaded
                     ? state.pets
                     : (state as PetsLoadingMore).currentPets;
-          
+
                 final isLoadingMore = state is PetsLoadingMore;
-                final hasReachedMax = state is PetsLoaded && state.hasReachedMax;
-          
+                final hasReachedMax =
+                    state is PetsLoaded && state.hasReachedMax;
+
                 if (pets.isEmpty) {
                   return Center(
                     child: Column(
@@ -107,13 +118,16 @@ class _PetsListPageState extends State<PetsListBodyView> {
                         const SizedBox(height: 16),
                         Text(
                           'No pets found',
-                          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ],
                     ),
                   );
                 }
-          
+
                 return RefreshIndicator(
                   onRefresh: () async => context.read<PetCubit>().refresh(),
                   color: Colors.teal,
@@ -130,20 +144,22 @@ class _PetsListPageState extends State<PetsListBodyView> {
                         );
                       }
                       return InkWell(
-                         onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DetailsView(petDetails: pets[index]),
-                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DetailsView(petDetails: pets[index]),
+                            ),
+                          );
+                        },
+                        child: PetListItem(pet: pets[index]),
                       );
-                         },
-                        child: PetListItem(pet: pets[index]));
                     },
                   ),
                 );
               }
-          
+
               return const SizedBox();
             },
           ),
