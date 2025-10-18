@@ -22,7 +22,7 @@ class HomeView extends StatelessWidget {
             icon: SvgPicture.asset(Assets.assetsIconsNotification,
                 width: 24, height: 24,),
             onPressed: () {
-              Navigator.pushNamed(context, '/fav');
+              // Navigator.pushNamed(context, '/fav');
             },
           ),
         ],
