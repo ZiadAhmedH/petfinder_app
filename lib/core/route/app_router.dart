@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:petfinder_app_demo/core/utils/app_colors.dart';
 import 'package:petfinder_app_demo/core/utils/constants/assets.dart';
+import 'package:petfinder_app_demo/features/fav/presentation/view/favorites_view.dart';
 import 'package:petfinder_app_demo/features/onboarding/onboarding_view.dart';
 
 import '../../features/home/presentation/view/home_view.dart';
@@ -44,7 +45,7 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: AppRoutes.fav,
           name: 'fav',
-          pageBuilder: (context, state) => MaterialPage(child: const FavView()),
+          pageBuilder: (context, state) => MaterialPage(child: const FavoritesView()),
         ),
       ],
     ),
@@ -52,19 +53,6 @@ final GoRouter appRouter = GoRouter(
   errorBuilder: (context, state) =>
       Scaffold(body: Center(child: Text('Route error: ${state.error}'))),
 );
-
-
-class FavView extends StatelessWidget {
-  const FavView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Favorites')),
-      body: const Center(child: Text('Favorites Page')),
-    );
-  }
-}
 
 class MainAppShell extends StatefulWidget {
   final Widget child;
@@ -119,7 +107,7 @@ class _MainAppShellState extends State<MainAppShell> {
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
-        children: [const HomeView(), const FavView()],
+        children: [const HomeView(), const FavoritesView()],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

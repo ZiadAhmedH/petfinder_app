@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:petfinder_app_demo/features/home/presentation/cubit/pet_cubit.dart';
-import 'package:petfinder_app_demo/features/home/presentation/cubit/pet_state.dart';
+import 'package:petfinder_app_demo/core/widgets/custom_text_widgets.dart';
+import 'package:petfinder_app_demo/features/home/presentation/cubit/pet/pet_cubit.dart';
+import 'package:petfinder_app_demo/features/home/presentation/cubit/pet/pet_state.dart';
+import 'package:petfinder_app_demo/features/home/presentation/view/details_view.dart';
 import 'package:petfinder_app_demo/features/home/presentation/widgets/pet_item.dart';
+import '../view/category_view.dart';
 import '../widgets/pet_shimmer.dart';
+import '../view/search_bar_view.dart';
 
 class PetsListBodyView extends StatefulWidget {
   const PetsListBodyView({super.key});
@@ -42,93 +46,125 @@ class _PetsListPageState extends State<PetsListBodyView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PetCubit, PetState>(
-      builder: (context, state) {
-        if (state is PetLoading) {
-          return ListView.builder(
-            itemCount: 5, // Show 5 shimmer items
-            itemBuilder: (context, index) => const PetItemShimmer(),
-          );
-        }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SearchBarWidget(),
+        
+        const SizedBox(height: 8),
+         
+        CategoryFilterCustom(onCategorySelected: (String p1) {  },),
 
-        if (state is PetsError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                const SizedBox(height: 16),
-                Text(
-                  state.message.message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () => context.read<PetCubit>().refresh(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+        Expanded(
+          child: BlocBuilder<PetCubit, PetState>(
+            builder: (context, state) {
+              if (state is PetLoading) {
+                return ListView.builder(
+                  itemCount: 5,
+                  itemBuilder: (context, index) => const PetItemShimmer(),
+                );
+              }
+
+              if (state is PetsError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red[300],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        state.message.message,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => context.read<PetCubit>().refresh(),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              if (state is PetsLoaded || state is PetsLoadingMore) {
+                final pets = state is PetsLoaded
+                    ? state.pets
+                    : (state as PetsLoadingMore).currentPets;
+
+                final isLoadingMore = state is PetsLoadingMore;
+                final hasReachedMax =
+                    state is PetsLoaded && state.hasReachedMax;
+
+                if (pets.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.pets, size: 64, color: Colors.grey[400]),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No pets found',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (state is PetsLoaded || state is PetsLoadingMore) {
-          final pets = state is PetsLoaded
-              ? state.pets
-              : (state as PetsLoadingMore).currentPets;
-
-          final isLoadingMore = state is PetsLoadingMore;
-          final hasReachedMax = state is PetsLoaded && state.hasReachedMax;
-
-          if (pets.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.pets, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No pets found',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async => context.read<PetCubit>().refresh(),
-            color: Colors.teal,
-            child: ListView.builder(
-              physics: const BouncingScrollPhysics(),
-              controller: _scrollController,
-              itemCount:
-                  pets.length + (isLoadingMore || !hasReachedMax ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= pets.length) {
-                  return const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: PetItemShimmer(),
                   );
                 }
-                return PetListItem(pet: pets[index]);
-              },
-            ),
-          );
-        }
 
-        return const SizedBox();
-      },
+                return RefreshIndicator(
+                  onRefresh: () async => context.read<PetCubit>().refresh(),
+                  color: Colors.teal,
+                  child: ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    controller: _scrollController,
+                    itemCount:
+                        pets.length + (isLoadingMore || !hasReachedMax ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index >= pets.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: PetItemShimmer(),
+                        );
+                      }
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DetailsView(petDetails: pets[index]),
+                            ),
+                          );
+                        },
+                        child: PetListItem(pet: pets[index]),
+                      );
+                    },
+                  ),
+                );
+              }
+
+              return const SizedBox();
+            },
+          ),
+        ),
+      ],
     );
   }
 }
