@@ -51,7 +51,6 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
     required int limit,
   }) async {
     try {
-      // Use the breeds/search endpoint which supports 'q' parameter
       final response = await dio.get(
         'breeds/search',
         queryParameters: {'q': query},
@@ -60,9 +59,7 @@ class PetRemoteDataSourceImpl implements PetRemoteDataSource {
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data as List<dynamic>;
 
-        // Apply pagination on client side
         final startIndex = page * limit;
-        final endIndex = startIndex + limit;
 
         final paginatedData = data.skip(startIndex).take(limit).toList();
 

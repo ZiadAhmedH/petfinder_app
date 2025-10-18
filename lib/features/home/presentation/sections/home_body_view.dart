@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:petfinder_app_demo/features/home/presentation/cubit/pet/pet_cubit.dart';
 import 'package:petfinder_app_demo/features/home/presentation/cubit/pet/pet_state.dart';
+import 'package:petfinder_app_demo/features/home/presentation/view/details_view.dart';
 import 'package:petfinder_app_demo/features/home/presentation/widgets/pet_item.dart';
 import '../widgets/pet_shimmer.dart';
-import '../widgets/search_bar_widget.dart';
+import '../view/search_bar_view.dart';
 
 class PetsListBodyView extends StatefulWidget {
   const PetsListBodyView({super.key});
@@ -128,7 +129,16 @@ class _PetsListPageState extends State<PetsListBodyView> {
                           child: PetItemShimmer(),
                         );
                       }
-                      return PetListItem(pet: pets[index]);
+                      return InkWell(
+                         onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailsView(petDetails: pets[index]),
+                        ),
+                      );
+                         },
+                        child: PetListItem(pet: pets[index]));
                     },
                   ),
                 );
