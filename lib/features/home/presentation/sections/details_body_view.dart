@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:petfinder_app_demo/core/extentaions/image_extention.dart';
+import '../../../fav/presentation/cubit/favorites_cubit.dart';
+import '../../../fav/presentation/cubit/favorites_state.dart';
 import '../../domain/entities/pet.dart';
 import '../widgets/pet_card_info.dart';
 
@@ -17,25 +20,99 @@ class DetailsBodyView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Hero(
-                tag: pet.id,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: MediaQuery.of(context).size.height * 0.30,
-                  child: CachedNetworkImage(
-                    imageUrl: pet.referenceImageId.getImageUrl(
-                      pet.referenceImageId,
-                    ),
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        const Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) => const Icon(
-                      Icons.error,
-                      size: 40,
-                      color: Colors.redAccent,
+              // Hero Image with Favorite Button Overlay
+              Stack(
+                children: [
+                  Hero(
+                    tag: pet.id,
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: MediaQuery.of(context).size.height * 0.30,
+                      child: CachedNetworkImage(
+                        imageUrl: pet.referenceImageId.getImageUrl(
+                          pet.referenceImageId,
+                        ),
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) =>
+                            const Center(child: CircularProgressIndicator()),
+                        errorWidget: (context, url, error) => const Icon(
+                          Icons.error,
+                          size: 40,
+                          color: Colors.redAccent,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+
+                  // Favorite Button
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: BlocBuilder<FavoritesCubit, FavoritesState>(
+                      builder: (context, state) {
+                        final isFav = context.read<FavoritesCubit>().isFavorite(
+                          pet.id,
+                        );
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(50),
+                              onTap: () async {
+                                await context
+                                    .read<FavoritesCubit>()
+                                    .toggleFavorite(pet);
+
+                                if (!context.mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isFav
+                                          ? 'Removed from favorites'
+                                          : 'Added to favorites',
+                                    ),
+                                    backgroundColor: isFav
+                                        ? Colors.grey[700]
+                                        : Colors.teal[400],
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 1),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Icon(
+                                  isFav
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isFav ? Colors.red : Colors.grey[600],
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                     ],
               ),
 
               Padding(
@@ -85,42 +162,50 @@ class DetailsBodyView extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Info Cards (Gender, Age, Weight)
+              // Info Cards with Favorite Indicator
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    // Gender Card
-                    Expanded(
-                      child: PetInfoCard(
-                        title: 'temperament',
-                        value: pet.temperament.split(',').first.trim(),
-                        color: Colors.teal[50]!,
-                      ),
-                    ),
+                child: BlocBuilder<FavoritesCubit, FavoritesState>(
+                  builder: (context, state) {
+                    final isFav = context.read<FavoritesCubit>().isFavorite(
+                      pet.id,
+                    );
 
-                    const SizedBox(width: 12),
+                    return Row(
+                      children: [
+                        // Temperament Card with Favorite Indicator
+                        Expanded(
+                          child: PetInfoCard(
+                            title: 'Temperament',
+                            value: pet.temperament.split(',').first.trim(),
+                            color: Colors.teal[50]!,
+                          ),
+                        ),
 
-                    // Life Span Card (as Age)
-                    Expanded(
-                      child: PetInfoCard(
-                        title: 'Life Span',
-                        value: pet.lifeSpan,
-                        color: Colors.teal[50]!,
-                      ),
-                    ),
+                        const SizedBox(width: 12),
 
-                    const SizedBox(width: 12),
+                        // Life Span Card
+                        Expanded(
+                          child: PetInfoCard(
+                            title: 'Life Span',
+                            value: pet.lifeSpan,
+                            color: Colors.teal[50]!,
+                          ),
+                        ),
 
-                    // Weight Card
-                    Expanded(
-                      child: PetInfoCard(
-                        title: 'Weight',
-                        value: '${pet.weight.metric} kg',
-                        color: Colors.teal[50]!,
-                      ),
-                    ),
-                  ],
+                        const SizedBox(width: 12),
+
+                        // Weight Card
+                        Expanded(
+                          child: PetInfoCard(
+                            title: 'Weight',
+                            value: '${pet.weight.metric} kg',
+                            color: Colors.teal[50]!,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
 
@@ -153,16 +238,16 @@ class DetailsBodyView extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 80),
+              const SizedBox(height: 100),
             ],
           ),
         ),
+
         // Adopt Me Button
         Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: SizedBox(
@@ -175,7 +260,8 @@ class DetailsBodyView extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal[400],
                   foregroundColor: Colors.white,
-                  elevation: 0,
+                  elevation: 2,
+                  shadowColor: Colors.teal.withOpacity(0.3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -219,24 +305,20 @@ class DetailsBodyView extends StatelessWidget {
                 color: Colors.teal[50],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Adoption Fee:',
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        'free',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal[700],
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
+                  const Text(
+                    'Adoption Fee:',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    'Free',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal[700],
+                      fontSize: 18,
+                    ),
                   ),
                 ],
               ),
