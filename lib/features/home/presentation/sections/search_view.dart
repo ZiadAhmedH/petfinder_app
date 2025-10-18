@@ -233,6 +233,7 @@ class _SearchViewState extends State<SearchView> {
                         Expanded(
                           child: RefreshIndicator(
                             onRefresh: () async {
+                              
                               if (state is SearchLoaded) {
                                 context.read<SearchCubit>().searchPets(
                                   query: state.query,
