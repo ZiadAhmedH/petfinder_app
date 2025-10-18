@@ -1,20 +1,25 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:petfinder_app_demo/core/config/app_config.dart';
+import 'package:petfinder_app_demo/features/home/domain/usecases/search_pet.dart';
+import 'package:petfinder_app_demo/features/home/presentation/cubit/pet/pet_cubit.dart';
 import '../features/home/data/datasources/home_remote_datasource.dart';
 import '../features/home/data/repositories/home_repository_impl.dart';
 import '../features/home/domain/repositories/home_repository.dart';
 import '../features/home/domain/usecases/get_pet_list_usecase.dart';
-import '../features/home/presentation/cubit/pet_cubit.dart';
+import '../features/home/presentation/cubit/search/search_cubit.dart';
+
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  // Cubit
+  // Cubits
   sl.registerFactory(() => PetCubit(getPetListUseCase: sl()));
+  sl.registerFactory(() => SearchCubit(searchPetsByNameUseCase: sl()));
 
   // Use cases
   sl.registerLazySingleton(() => GetPetListUseCase(repository: sl()));
+  sl.registerLazySingleton(() => SearchPetsByNameUseCase(repository: sl()));
 
   // Repository
   sl.registerLazySingleton<HomeRepository>(
@@ -35,11 +40,11 @@ Future<void> init() async {
         receiveTimeout: const Duration(seconds: 30),
         headers: {
           'Content-Type': 'application/json',
+          'x-api-key': AppConfig.apiKey,
         },
       ),
     );
 
-    // Add logging interceptor (optional, for debugging)
     dio.interceptors.add(
       LogInterceptor(
         requestBody: true,

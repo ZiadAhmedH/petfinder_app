@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:petfinder_app_demo/core/errors/failure.dart';
-import '../../domain/entities/pet.dart';
+import '../../../domain/entities/pet.dart';
 
 abstract class PetState extends Equatable {
   const PetState();

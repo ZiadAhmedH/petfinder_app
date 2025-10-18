@@ -10,7 +10,8 @@ class CategoryView extends StatelessWidget {
       itemCount: 10,
       itemBuilder: (context, index) {
         return ListTile(title: Text('Category $index'));
-      },
+      }, 
     );
   }
 }
+

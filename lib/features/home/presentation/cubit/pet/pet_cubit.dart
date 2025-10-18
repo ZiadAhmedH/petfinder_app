@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 
-import '../../../../core/errors/mapper.dart';
-import '../../domain/usecases/get_pet_list_usecase.dart';
-import '../../domain/entities/pet.dart';
+import '../../../../../core/errors/mapper.dart';
+import '../../../domain/usecases/get_pet_list_usecase.dart';
+import '../../../domain/entities/pet.dart';
 import 'pet_state.dart';
 
 class PetCubit extends Cubit<PetState> {

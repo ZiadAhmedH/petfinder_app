@@ -7,7 +7,7 @@ import 'package:petfinder_app_demo/features/home/presentation/sections/home_body
 
 import '../../../../core/di.dart' as di;
 import '../../../../core/utils/constants/assets.dart';
-import '../cubit/pet_cubit.dart';
+import '../cubit/pet/pet_cubit.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
